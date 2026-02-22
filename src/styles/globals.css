@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --primary-blue: #2563EB;
+    --secondary-green: #10B981;
+    --light-blue: #DBEAFE;
+    --light-green: #D1FAE5;
+    --dark-text: #1F2937;
+    --gray-text: #6B7280;
+    --background: #F9FAFB;
+    --white: #FFFFFF;
+    --border: #E5E7EB;
+    --success: #10B981;
+    --warning: #F59E0B;
+  }
+
+  body {
+    @apply text-[var(--dark-text)] bg-[var(--background)];
+  }
+
+  h1 {
+    font-family: system-ui, -apple-system, sans-serif;
+  }
+
+  h2 {
+    font-family: system-ui, -apple-system, sans-serif;
+  }
+
+  h3 {
+    font-family: system-ui, -apple-system, sans-serif;
+  }
+
+  p {
+    font-family: system-ui, -apple-system, sans-serif;
+  }
+
+  button {
+    font-family: system-ui, -apple-system, sans-serif;
+  }
+}
