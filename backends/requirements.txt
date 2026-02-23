@@ -1,0 +1,17 @@
+# Web Framework
+fastapi
+uvicorn[standard]
+
+# Base de données
+sqlmodel
+psycopg2-binary
+alembic
+
+# Sécurité et Authentification
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
+
+# Manipulation PDF et Cryptographie
+pypdf
+cryptography
