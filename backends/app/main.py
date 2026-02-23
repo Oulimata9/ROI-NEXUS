@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import Session
 from app.database import create_db_and_tables, get_session
 from app.models.models import Entreprise
-from app.routes import auth  # On prépare l'import de la route auth
+from app.routes import auth, documents, signatures  # On prépare l'import de la route auth et documents
 from typing import List
 
 app = FastAPI(
@@ -31,3 +31,5 @@ async def root():
 
 # Inclusion des futurs routeurs
 app.include_router(auth.router) # Assure-toi que app/routes/auth.py existe
+app.include_router(documents.router)
+app.include_router(signatures.router)
