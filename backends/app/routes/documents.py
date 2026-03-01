@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status, Form
 from sqlmodel import Session, select
 from app.database import get_session
 from typing import List
@@ -12,8 +12,8 @@ router = APIRouter(prefix="/documents", tags=["Documents"])
 
 @router.post("/upload", response_model=DocumentOut, status_code=status.HTTP_201_CREATED)
 async def upload_document(
-    id_entreprise: int,
-    id_createur: int,
+    id_entreprise: int = Form(...),
+    id_createur: int = Form(...),
     file: UploadFile = File(...),
     session: Session = Depends(get_session)
 ):

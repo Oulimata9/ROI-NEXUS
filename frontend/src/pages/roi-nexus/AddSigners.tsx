@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { UserPlus, Mail, X, ArrowRight, Users, FileText, CheckCircle2, Shield, Info } from 'lucide-react';
+import { UserPlus, Mail, X, ArrowRight, Users, FileText, CheckCircle2, Loader2 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import Logo from '../../components/roi-nexus/Logo';
+import api from '../../api/axios';
 import {
   Select,
   SelectContent,
@@ -39,6 +40,7 @@ export default function AddSigners({ document, onNavigate, onSendDocument }: Add
   const [currentEmail, setCurrentEmail] = useState('');
   const [currentRole, setCurrentRole] = useState<'signer' | 'approver' | 'cc'>('signer');
   const [error, setError] = useState('');
+  const [isSending, setIsSending] = useState(false);
 
   const addSigner = () => {
     if (!currentEmail) {
@@ -86,15 +88,6 @@ export default function AddSigners({ document, onNavigate, onSendDocument }: Add
     setSigners(newSigners);
   };
 
-  const getRoleLabel = (role: string) => {
-    switch (role) {
-      case 'signer': return 'Signataire';
-      case 'approver': return 'Approbateur';
-      case 'cc': return 'En copie';
-      default: return role;
-    }
-  };
-
   const getRoleBadge = (role: string) => {
     switch (role) {
       case 'signer':
@@ -108,19 +101,37 @@ export default function AddSigners({ document, onNavigate, onSendDocument }: Add
     }
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     const actualSigners = signers.filter(s => s.role === 'signer' || s.role === 'approver');
+    
     if (actualSigners.length === 0) {
       setError('Ajoutez au moins un signataire ou approbateur');
       return;
     }
-    onSendDocument(signers.map(s => s.email));
-    onNavigate('sending-confirmation');
-  };
 
-  const signerCount = signers.filter(s => s.role === 'signer').length;
-  const approverCount = signers.filter(s => s.role === 'approver').length;
-  const ccCount = signers.filter(s => s.role === 'cc').length;
+    if (!document?.id) {
+        setError("Erreur : Aucun document sélectionné");
+        return;
+    }
+
+    setIsSending(true);
+    try {
+      // Pour chaque signataire, on crée une invitation dans le backend
+      for (const signer of signers) {
+        await api.post(`/signatures/invite/${document.id}`, null, {
+          params: { email_signataire: signer.email }
+        });
+      }
+
+      onSendDocument(signers.map(s => s.email));
+      onNavigate('sending-confirmation');
+    } catch (err: any) {
+      console.error("Erreur lors de l'envoi des invitations", err);
+      setError("Le serveur n'a pas pu envoyer les invitations. Vérifiez la connexion au backend.");
+    } finally {
+      setIsSending(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30">
@@ -139,7 +150,6 @@ export default function AddSigners({ document, onNavigate, onSendDocument }: Add
             </button>
           </div>
 
-          {/* Upload Steps */}
           <div className="p-6 space-y-4">
             <div className="flex items-center space-x-3 opacity-50">
               <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
@@ -166,16 +176,13 @@ export default function AddSigners({ document, onNavigate, onSendDocument }: Add
       {/* Main Content */}
       <div className="ml-72 p-8">
         <div className="max-w-4xl mx-auto">
-          {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Ajouter les signataires</h1>
             <p className="text-gray-600">Invitez les personnes qui doivent signer le document</p>
           </div>
 
           <div className="grid lg:grid-cols-3 gap-6">
-            {/* Main Form - Left Side */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Add Signer Form */}
               <Card className="border-2 border-gray-100 shadow-lg">
                 <CardHeader className="border-b border-gray-100">
                   <CardTitle className="flex items-center">
@@ -243,7 +250,6 @@ export default function AddSigners({ document, onNavigate, onSendDocument }: Add
                 </CardContent>
               </Card>
 
-              {/* Signers List */}
               <Card className="border-2 border-gray-100 shadow-lg">
                 <CardHeader className="border-b border-gray-100">
                   <CardTitle className="flex items-center justify-between">
@@ -309,22 +315,30 @@ export default function AddSigners({ document, onNavigate, onSendDocument }: Add
                 </CardContent>
               </Card>
 
-              {/* Action Buttons */}
               {signers.length > 0 && (
                 <div className="flex justify-end">
                   <Button
                     onClick={handleSend}
+                    disabled={isSending}
                     className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white shadow-lg shadow-blue-500/30 group"
                     size="lg"
                   >
-                    Envoyer pour signature
-                    <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                    {isSending ? (
+                        <>
+                            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                            Envoi en cours...
+                        </>
+                    ) : (
+                        <>
+                            Envoyer pour signature
+                            <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                        </>
+                    )}
                   </Button>
                 </div>
               )}
             </div>
 
-            {/* Document Info - Right Side */}
             <div className="space-y-6">
               <Card className="border-2 border-gray-100 shadow-lg sticky top-8">
                 <CardHeader className="border-b border-gray-100">
@@ -347,53 +361,7 @@ export default function AddSigners({ document, onNavigate, onSendDocument }: Add
                         </div>
                       </div>
                     </div>
-
-                    <div className="space-y-3 pt-4 border-t border-gray-200">
-                      <h4 className="font-semibold text-gray-900 text-sm">Informations</h4>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Statut</span>
-                          <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">
-                            En préparation
-                          </Badge>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Signataires</span>
-                          <span className="font-semibold text-gray-900">{signers.length}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Date</span>
-                          <span className="font-semibold text-gray-900">
-                            {new Date().toLocaleDateString('fr-FR')}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
                   </div>
-                </CardContent>
-              </Card>
-
-              {/* Tips */}
-              <Card className="border border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50">
-                <CardContent className="p-6">
-                  <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
-                    <CheckCircle2 className="w-5 h-5 mr-2 text-blue-600" />
-                    Conseils
-                  </h4>
-                  <ul className="space-y-2 text-sm text-gray-700">
-                    <li className="flex items-start">
-                      <span className="text-blue-600 mr-2">•</span>
-                      <span>Les signataires recevront un email avec un lien sécurisé</span>
-                    </li>
-                    <li className="flex items-start">
-                      <span className="text-blue-600 mr-2">•</span>
-                      <span>L'ordre de signature sera respecté</span>
-                    </li>
-                    <li className="flex items-start">
-                      <span className="text-blue-600 mr-2">•</span>
-                      <span>Vous serez notifié à chaque signature</span>
-                    </li>
-                  </ul>
                 </CardContent>
               </Card>
             </div>

@@ -16,7 +16,8 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 1440  # Le token expire après 24 heures
 
 # Configuration du hachage des mots de passe
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Utilise argon2 (plus moderne, sans limite de 72 bytes comme bcrypt)
+pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
 router = APIRouter(prefix="/auth", tags=["Authentification"])
 

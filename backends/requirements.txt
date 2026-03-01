@@ -9,9 +9,11 @@ alembic
 
 # Sécurité et Authentification
 python-jose[cryptography]
-passlib[bcrypt]
+passlib[argon2]
 python-multipart
 
 # Manipulation PDF et Cryptographie
 pypdf
 cryptography
+pydantic[email]
+reportlab
