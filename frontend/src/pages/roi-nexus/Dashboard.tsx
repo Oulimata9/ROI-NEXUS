@@ -22,14 +22,14 @@ import {
 // Interface pour correspondre aux données du Backend
 interface Document {
   id_document: number;
-  nom_original: string;
-  statut: 'en attente' | 'signé' | 'archivé';
-  date_upload: string;
-  taille: number;
+  titre: string;
+  statut: 'en attente' | 'signé' | 'archivé' | 'brouillon';
+  date_creation: string;
+  id_createur: number;
 }
 
 interface DashboardProps {
-  onNavigate: (page: 'upload' | 'archive' | 'settings') => void;
+  onNavigate: (page: 'upload' | 'archive' | 'settings' | 'documents-management' | 'document-detail', documentId?: number) => void;
   onLogout: () => void;
   onSelectDocument: (doc: any) => void;
 }
@@ -71,7 +71,7 @@ export default function Dashboard({ onNavigate, onLogout, onSelectDocument }: Da
 
   // Filtrage pour la recherche
   const filteredDocuments = documents.filter(doc => 
-    doc.nom_original.toLowerCase().includes(searchTerm.toLowerCase())
+    doc.titre.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -85,6 +85,9 @@ export default function Dashboard({ onNavigate, onLogout, onSelectDocument }: Da
         <nav className="flex-1 p-4 space-y-2">
           <Button variant="ghost" className="w-full justify-start text-blue-600 bg-blue-50">
             <BarChart3 className="mr-3 w-5 h-5" /> Vue d'ensemble
+          </Button>
+          <Button onClick={() => onNavigate('documents-management')} variant="ghost" className="w-full justify-start text-gray-600 hover:text-blue-600">
+            <FileText className="mr-3 w-5 h-5" /> Gérer mes documents
           </Button>
           <Button onClick={() => onNavigate('upload')} variant="ghost" className="w-full justify-start text-gray-600 hover:text-blue-600">
             <Plus className="mr-3 w-5 h-5" /> Nouveau document
@@ -222,7 +225,7 @@ export default function Dashboard({ onNavigate, onLogout, onSelectDocument }: Da
                               <div className="p-2 bg-red-50 text-red-600 rounded-lg group-hover:bg-red-100 transition-colors">
                                 <FileText className="w-5 h-5" />
                               </div>
-                              <span className="font-semibold text-gray-900">{doc.nom_original}</span>
+                              <span className="font-semibold text-gray-900">{doc.titre}</span>
                             </div>
                           </td>
                           <td className="px-6 py-4">
@@ -233,10 +236,10 @@ export default function Dashboard({ onNavigate, onLogout, onSelectDocument }: Da
                             </Badge>
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-500">
-                            {new Date(doc.date_upload).toLocaleDateString()}
+                            {new Date(doc.date_creation).toLocaleDateString()}
                           </td>
                           <td className="px-6 py-4 text-right">
-                            <Button variant="ghost" size="sm" onClick={() => onSelectDocument(doc)}>
+                            <Button variant="ghost" size="sm" onClick={() => onNavigate('document-detail', doc.id_document)}>
                               <Eye className="w-4 h-4 mr-2" /> Voir
                             </Button>
                           </td>

@@ -11,6 +11,8 @@ import SignatureConfirmation from './pages/roi-nexus/SignatureConfirmation';
 import SignedDocument from './pages/roi-nexus/SignedDocument';
 import Archive from './pages/roi-nexus/Archive';
 import Settings from './pages/roi-nexus/Settings';
+import DocumentsManagement from './pages/roi-nexus/DocumentsManagement';
+import DocumentDetail from './pages/roi-nexus/DocumentDetail';
 
 type Page = 
   | 'landing'
@@ -24,7 +26,9 @@ type Page =
   | 'signature-confirmation'
   | 'signed-document'
   | 'archive'
-  | 'settings';
+  | 'settings'
+  | 'documents-management'
+  | 'document-detail';
 
 interface Document {
   id: string;
@@ -62,6 +66,7 @@ export default function App() {
   ]);
   const [currentDocument, setCurrentDocument] = useState<Document | null>(null);
   const [uploadedFile, setUploadedFile] = useState<{ name: string; size: number } | null>(null);
+  const [selectedDocumentId, setSelectedDocumentId] = useState<number | null>(null);
 
   const handleLogin = () => {
     setIsAuthenticated(true);
@@ -78,7 +83,10 @@ export default function App() {
     setCurrentPage('landing');
   };
 
-  const navigateTo = (page: Page) => {
+  const navigateTo = (page: Page, documentId?: number) => {
+    if (documentId) {
+      setSelectedDocumentId(documentId);
+    }
     setCurrentPage(page);
   };
 
@@ -169,6 +177,23 @@ export default function App() {
         );
       case 'settings':
         return <Settings onNavigate={navigateTo} onLogout={handleLogout} />;
+      case 'documents-management':
+        return (
+          <DocumentsManagement
+            onNavigate={navigateTo}
+            onLogout={handleLogout}
+          />
+        );
+      case 'document-detail':
+        return selectedDocumentId ? (
+          <DocumentDetail
+            documentId={selectedDocumentId}
+            onNavigate={navigateTo}
+            onLogout={handleLogout}
+          />
+        ) : (
+          <LandingPage onNavigate={navigateTo} />
+        );
       default:
         return <LandingPage onNavigate={navigateTo} />;
     }

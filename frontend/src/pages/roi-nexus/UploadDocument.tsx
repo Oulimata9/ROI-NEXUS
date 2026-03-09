@@ -168,7 +168,7 @@ if (idUser) formData.append('id_createur', idUser);
                       <input id="file-upload" type="file" accept=".pdf" className="hidden" onChange={handleFileSelect} />
                       <Button 
                         onClick={() => document.getElementById('file-upload')?.click()}
-                        className="bg-blue-600 text-white"
+                        className="bg-blue-600 text-danger-50 hover:bg-blue-700 group"
                       >
                         Sélectionner un fichier
                       </Button>
