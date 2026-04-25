@@ -4,7 +4,7 @@ import { Card, CardContent } from '../../components/ui/card';
 import Logo from '../../components/roi-nexus/Logo';
 
 interface SignatureConfirmationProps {
-  onNavigate: (page: 'signed-document') => void;
+  onNavigate: (page: 'landing' | 'signed-document') => void;
 }
 
 export default function SignatureConfirmation({ onNavigate }: SignatureConfirmationProps) {
@@ -13,7 +13,7 @@ export default function SignatureConfirmation({ onNavigate }: SignatureConfirmat
       {/* Header */}
       <header className="bg-white/10 backdrop-blur-lg border-b border-white/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <Logo size="md" variant="light" />
+          <Logo size="md" variant="light" onClick={() => onNavigate('landing')} />
         </div>
       </header>
 

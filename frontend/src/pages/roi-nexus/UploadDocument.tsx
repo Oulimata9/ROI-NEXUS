@@ -1,71 +1,81 @@
-import { useState, useEffect } from 'react';
-import { Upload, FileText, X, ArrowRight, File, CheckCircle2, AlertCircle } from 'lucide-react';
-import { Button } from '../../components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
-import { Progress } from '../../components/ui/progress';
-import Logo from '../../components/roi-nexus/Logo';
-import api from '../../api/axios';
+import { useState } from 'react';
 import { AxiosProgressEvent } from 'axios';
+import { AlertCircle, ArrowRight, FileText, Upload, X } from 'lucide-react';
+
+import api from '../../api/axios';
+import Logo from '../../components/roi-nexus/Logo';
+import { Button } from '../../components/ui/button';
+import { Card, CardContent } from '../../components/ui/card';
+import { Progress } from '../../components/ui/progress';
 
 interface UploadDocumentProps {
-  onNavigate: (page: 'dashboard' | 'add-signers') => void;
-  onFileUpload: (file: { name: string; size: number; id?: number }) => void;
+  onNavigate: (page: 'landing' | 'dashboard' | 'add-signers') => void;
+  onFileUpload: (file: { name: string; size: number; id?: number; date?: string }) => void;
 }
 
 export default function UploadDocument({ onNavigate, onFileUpload }: UploadDocumentProps) {
-  const [uploadedFile, setUploadedFile] = useState<{ name: string; size: number; id?: number } | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<{ name: string; size: number; id?: number; date?: string } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Récupération des infos de session au montage du composant
   const idEntreprise = localStorage.getItem('id_entreprise');
-  const idUser = localStorage.getItem('id_user');
   const userName = localStorage.getItem('user_name');
 
   const handleFileUploadToServer = async (file: File) => {
-  setIsUploading(true);
-  setUploadProgress(0);
+    setError(null);
+    setIsUploading(true);
+    setUploadProgress(0);
 
-  const formData = new FormData();
-formData.append('file', file);
+    const formData = new FormData();
+    formData.append('file', file);
 
-// Conversion explicite en string de nombre pour être sûr
-const idEntreprise = localStorage.getItem('id_entreprise');
-const idUser = localStorage.getItem('id_user');
+    const entrepriseId = localStorage.getItem('id_entreprise');
+    const userId = localStorage.getItem('id_user');
 
-if (idEntreprise) formData.append('id_entreprise', idEntreprise); 
-if (idUser) formData.append('id_createur', idUser);
+    if (entrepriseId) {
+      formData.append('id_entreprise', entrepriseId);
+    }
 
-  try {
-    const response = await api.post('/documents/upload', formData, {
-      // 2. Typer explicitement progressEvent
-      onUploadProgress: (progressEvent: AxiosProgressEvent) => {
-        const percentCompleted = Math.round(
-          (progressEvent.loaded * 100) / (progressEvent.total || 1)
-        );
-        setUploadProgress(percentCompleted);
-      },
-    });
+    if (userId) {
+      formData.append('id_createur', userId);
+    }
 
-    setIsUploading(false);
-    setUploadedFile({ name: file.name, size: file.size });
-  } catch (error) {
-    setIsUploading(false);
-    alert("Erreur lors de l'envoi du document");
-  }
-};
+    try {
+      const response = await api.post('/documents/upload', formData, {
+        onUploadProgress: (progressEvent: AxiosProgressEvent) => {
+          const percentCompleted = Math.round(
+            (progressEvent.loaded * 100) / (progressEvent.total || 1)
+          );
+          setUploadProgress(percentCompleted);
+        },
+      });
+
+      setUploadedFile({
+        name: response.data.titre ?? file.name,
+        size: file.size,
+        id: response.data.id_document,
+        date: response.data.date_creation,
+      });
+    } catch (err: any) {
+      setError(err.response?.data?.detail || "Erreur lors de l'envoi du document.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
+
     const file = e.dataTransfer.files[0];
     if (file && file.type === 'application/pdf') {
       handleFileUploadToServer(file);
-    } else {
-      setError("Veuillez sélectionner un fichier PDF valide.");
+      return;
     }
+
+    setError('Veuillez sélectionner un fichier PDF valide.');
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,24 +85,21 @@ if (idUser) formData.append('id_createur', idUser);
     }
   };
 
-  const formatFileSize = (bytes: number) => {
-    return (bytes / 1024 / 1024).toFixed(2) + ' MB';
-  };
-
   const handleContinue = () => {
-    if (uploadedFile) {
-      onFileUpload(uploadedFile);
-      onNavigate('add-signers');
+    if (!uploadedFile) {
+      return;
     }
+
+    onFileUpload(uploadedFile);
+    onNavigate('add-signers');
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30">
-      {/* Sidebar */}
       <div className="fixed inset-y-0 left-0 w-72 bg-white border-r border-gray-200 shadow-xl">
         <div className="flex flex-col h-full">
           <div className="p-6 border-b border-gray-200">
-            <Logo size="md" variant="dark" />
+            <Logo size="md" variant="dark" onClick={() => onNavigate('landing')} />
           </div>
           <div className="p-6">
             <button
@@ -113,7 +120,7 @@ if (idUser) formData.append('id_createur', idUser);
               <span className="text-gray-600">Signataires</span>
             </div>
           </div>
-          
+
           <div className="mt-auto p-6 border-t border-gray-100">
             <p className="text-xs text-gray-500 uppercase font-bold tracking-wider">Session active</p>
             <p className="text-sm font-medium text-gray-900 truncate">{userName}</p>
@@ -121,7 +128,6 @@ if (idUser) formData.append('id_createur', idUser);
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="ml-72 p-8">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
@@ -144,7 +150,10 @@ if (idUser) formData.append('id_createur', idUser);
                     isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-blue-400'
                   }`}
                   onDrop={handleDrop}
-                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setIsDragging(true);
+                  }}
                   onDragLeave={() => setIsDragging(false)}
                 >
                   {isUploading ? (
@@ -160,15 +169,18 @@ if (idUser) formData.append('id_createur', idUser);
                     </div>
                   ) : (
                     <>
-                      <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-500/30">
+                      <div
+                        className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-500/30"
+                        style={{ backgroundColor: '#2563eb' }}
+                      >
                         <Upload className="w-10 h-10 text-white" />
                       </div>
                       <h3 className="text-xl font-semibold text-gray-900 mb-3">Glissez votre PDF ici</h3>
                       <p className="text-gray-500 mb-6">ou cliquez sur le bouton ci-dessous</p>
                       <input id="file-upload" type="file" accept=".pdf" className="hidden" onChange={handleFileSelect} />
-                      <Button 
+                      <Button
                         onClick={() => document.getElementById('file-upload')?.click()}
-                        className="bg-blue-600 text-danger-50 hover:bg-blue-700 group"
+                        className="bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-500/25 group"
                       >
                         Sélectionner un fichier
                       </Button>
@@ -187,7 +199,11 @@ if (idUser) formData.append('id_createur', idUser);
                         <p className="text-sm text-green-700 font-medium">Prêt pour la signature</p>
                       </div>
                     </div>
-                    <button onClick={() => setUploadedFile(null)} className="p-2 hover:bg-white rounded-full text-gray-400 hover:text-red-500 transition-colors">
+                    <button
+                      onClick={() => setUploadedFile(null)}
+                      aria-label="Retirer le fichier"
+                      className="flex h-10 w-10 items-center justify-center rounded-full border border-red-100 bg-white text-red-500 shadow-sm transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+                    >
                       <X className="w-6 h-6" />
                     </button>
                   </div>

@@ -7,7 +7,7 @@ import { Badge } from '../../components/ui/badge';
 import Logo from '../../components/roi-nexus/Logo';
 
 interface LandingPageProps {
-  onNavigate: (page: 'signup' | 'login') => void;
+  onNavigate: (page: 'login' | 'signup') => void;
 }
 
 export default function LandingPage({ onNavigate }: LandingPageProps) {
@@ -137,11 +137,11 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
                 Se connecter
               </Button>
               <Button
-                onClick={() => onNavigate('signup')}
+                onClick={() => onNavigate('login')}
                 className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white shadow-xl shadow-blue-500/40 font-semibold px-6"
                 size="lg"
               >
-                Commencer maintenant
+                Acceder a la plateforme
               </Button>
             </nav>
           </div>
@@ -176,11 +176,11 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
               </p>
               <div className="flex flex-col sm:flex-row gap-5">
                 <Button
-                  onClick={() => onNavigate('signup')}
+                  onClick={() => onNavigate('login')}
                   size="lg"
                   className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white shadow-2xl shadow-cyan-500/40 text-lg px-10 py-8 group font-bold"
                 >
-                  Commencer maintenant
+                  Se connecter
                   <ArrowRight className="w-6 h-6 ml-3 group-hover:translate-x-1 transition-transform" />
                 </Button>
                 <Button
@@ -515,11 +515,11 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
             Rejoignez plus de 50,000 entreprises africaines qui font confiance à Nexus Sign
           </p>
           <Button
-            onClick={() => onNavigate('signup')}
+            onClick={() => onNavigate('login')}
             size="lg"
             className="bg-white text-blue-600 hover:bg-gray-100 shadow-2xl text-xl px-12 py-8 group font-black"
           >
-            Commencer maintenant
+            Aller a la connexion
             <ArrowRight className="w-6 h-6 ml-3 group-hover:translate-x-1 transition-transform" />
           </Button>
           <p className="text-blue-100 mt-8 text-lg font-semibold">

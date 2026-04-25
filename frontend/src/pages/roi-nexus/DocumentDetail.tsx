@@ -9,6 +9,7 @@ import { Badge } from '../../components/ui/badge';
 import { Progress } from '../../components/ui/progress';
 import Logo from '../../components/roi-nexus/Logo';
 import api from '../../api/axios';
+import { downloadBlob, getFilenameFromDisposition } from '../../utils/download';
 
 interface Signature {
   id_signature: number;
@@ -28,7 +29,7 @@ interface Document {
 }
 
 interface DocumentDetailProps {
-  onNavigate: (page: string) => void;
+  onNavigate: (page: 'landing' | 'dashboard' | 'upload' | 'archive' | 'settings' | 'documents-management') => void;
   onLogout: () => void;
   documentId: number;
 }
@@ -101,11 +102,15 @@ export default function DocumentDetail({ onNavigate, onLogout, documentId }: Doc
     try {
       setError('');
       const response = await api.get(`/documents/${documentId}/download`, {
-        params: { id_entreprise: idEntreprise }
+        params: { id_entreprise: idEntreprise },
+        responseType: 'blob'
       });
-      
-      // Redirect to download or implement download logic
-      window.location.href = `/api${response.config.url}`;
+
+      const filename = getFilenameFromDisposition(
+        response.headers['content-disposition'],
+        `${document?.titre || 'document-signe'}.pdf`
+      );
+      downloadBlob(response.data, filename);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Erreur lors du téléchargement');
     }
@@ -128,7 +133,7 @@ export default function DocumentDetail({ onNavigate, onLogout, documentId }: Doc
       <div className="min-h-screen bg-gray-50 flex">
         <aside className="w-72 bg-white border-r border-gray-200 flex flex-col sticky top-0 h-screen">
           <div className="p-6 border-b border-gray-100">
-            <Logo size="md" variant="dark" />
+            <Logo size="md" variant="dark" onClick={() => onNavigate('landing')} />
           </div>
           <div className="flex-1" />
           <Button onClick={onLogout} variant="ghost" className="w-full justify-start text-red-600 hover:bg-red-50 m-4">
@@ -163,7 +168,7 @@ export default function DocumentDetail({ onNavigate, onLogout, documentId }: Doc
       {/* Sidebar */}
       <aside className="w-72 bg-white border-r border-gray-200 flex flex-col sticky top-0 h-screen">
         <div className="p-6 border-b border-gray-100">
-          <Logo size="md" variant="dark" />
+          <Logo size="md" variant="dark" onClick={() => onNavigate('landing')} />
         </div>
 
         <nav className="flex-1 p-4 space-y-2">

@@ -11,10 +11,17 @@ interface SignatureModalProps {
   onClose: () => void;
   onSave: (signature: string, type: 'draw' | 'type' | 'upload') => void;
   signerName?: string;
+  allowedModes?: Array<'draw' | 'type' | 'upload'>;
 }
 
-export default function SignatureModal({ isOpen, onClose, onSave, signerName = '' }: SignatureModalProps) {
-  const [activeTab, setActiveTab] = useState<'draw' | 'type' | 'upload'>('draw');
+export default function SignatureModal({
+  isOpen,
+  onClose,
+  onSave,
+  signerName = '',
+  allowedModes = ['draw', 'type', 'upload'],
+}: SignatureModalProps) {
+  const [activeTab, setActiveTab] = useState<'draw' | 'type' | 'upload'>(allowedModes[0] || 'draw');
   const [isDrawing, setIsDrawing] = useState(false);
   const [typedText, setTypedText] = useState(signerName);
   const [selectedFont, setSelectedFont] = useState<'cursive' | 'serif' | 'script'>('cursive');
@@ -31,6 +38,12 @@ export default function SignatureModal({ isOpen, onClose, onSave, signerName = '
       }
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (!allowedModes.includes(activeTab)) {
+      setActiveTab(allowedModes[0] || 'draw');
+    }
+  }, [activeTab, allowedModes]);
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     setIsDrawing(true);
@@ -140,19 +153,25 @@ export default function SignatureModal({ isOpen, onClose, onSave, signerName = '
         {/* Content */}
         <div className="p-6">
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-6 h-14 bg-gray-100 p-1">
-              <TabsTrigger value="draw" className="data-[state=active]:bg-white data-[state=active]:shadow-md font-bold text-sm">
-                <Pen className="w-4 h-4 mr-2" />
-                Dessiner
-              </TabsTrigger>
-              <TabsTrigger value="type" className="data-[state=active]:bg-white data-[state=active]:shadow-md font-bold text-sm">
-                <Type className="w-4 h-4 mr-2" />
-                Taper
-              </TabsTrigger>
-              <TabsTrigger value="upload" className="data-[state=active]:bg-white data-[state=active]:shadow-md font-bold text-sm">
-                <Upload className="w-4 h-4 mr-2" />
-                Importer
-              </TabsTrigger>
+            <TabsList className={`grid w-full mb-6 h-14 bg-gray-100 p-1`} style={{ gridTemplateColumns: `repeat(${allowedModes.length}, minmax(0, 1fr))` }}>
+              {allowedModes.includes('draw') && (
+                <TabsTrigger value="draw" className="data-[state=active]:bg-white data-[state=active]:shadow-md font-bold text-sm">
+                  <Pen className="w-4 h-4 mr-2" />
+                  Dessiner
+                </TabsTrigger>
+              )}
+              {allowedModes.includes('type') && (
+                <TabsTrigger value="type" className="data-[state=active]:bg-white data-[state=active]:shadow-md font-bold text-sm">
+                  <Type className="w-4 h-4 mr-2" />
+                  Taper
+                </TabsTrigger>
+              )}
+              {allowedModes.includes('upload') && (
+                <TabsTrigger value="upload" className="data-[state=active]:bg-white data-[state=active]:shadow-md font-bold text-sm">
+                  <Upload className="w-4 h-4 mr-2" />
+                  Importer
+                </TabsTrigger>
+              )}
             </TabsList>
 
             {/* Draw Tab */}

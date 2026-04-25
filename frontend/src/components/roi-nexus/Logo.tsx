@@ -4,9 +4,17 @@ interface LogoProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
   variant?: 'light' | 'dark';
   showTagline?: boolean;
+  onClick?: () => void;
+  ariaLabel?: string;
 }
 
-export default function Logo({ size = 'md', variant = 'dark', showTagline = false }: LogoProps) {
+export default function Logo({
+  size = 'md',
+  variant = 'dark',
+  showTagline = false,
+  onClick,
+  ariaLabel = "Retourner a la page d'accueil"
+}: LogoProps) {
   const sizes = {
     sm: { image: 'h-10', container: 'gap-2', text: 'text-lg', tagline: 'text-xs' },
     md: { image: 'h-12', container: 'gap-3', text: 'text-xl', tagline: 'text-xs' },
@@ -20,7 +28,7 @@ export default function Logo({ size = 'md', variant = 'dark', showTagline = fals
   
   const taglineStyles = variant === 'light' ? 'text-blue-200' : 'text-gray-600';
 
-  return (
+  const content = (
     <div className="flex items-center gap-4">
       <div className={`flex items-center ${sizes[size].container}`}>
         <div className="relative">
@@ -43,4 +51,20 @@ export default function Logo({ size = 'md', variant = 'dark', showTagline = fals
       </div>
     </div>
   );
+
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        aria-label={ariaLabel}
+        className="inline-flex rounded-2xl transition-transform duration-200 hover:scale-[1.01] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+        style={{ background: 'transparent', border: 'none', padding: 0, textAlign: 'left', cursor: 'pointer' }}
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return content;
 }

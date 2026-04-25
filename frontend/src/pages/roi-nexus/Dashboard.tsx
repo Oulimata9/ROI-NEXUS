@@ -29,12 +29,11 @@ interface Document {
 }
 
 interface DashboardProps {
-  onNavigate: (page: 'upload' | 'archive' | 'settings' | 'documents-management' | 'document-detail', documentId?: number) => void;
+  onNavigate: (page: 'landing' | 'upload' | 'archive' | 'settings' | 'documents-management' | 'document-detail', documentId?: number) => void;
   onLogout: () => void;
-  onSelectDocument: (doc: any) => void;
 }
 
-export default function Dashboard({ onNavigate, onLogout, onSelectDocument }: DashboardProps) {
+export default function Dashboard({ onNavigate, onLogout }: DashboardProps) {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -79,7 +78,7 @@ export default function Dashboard({ onNavigate, onLogout, onSelectDocument }: Da
       {/* Sidebar */}
       <aside className="w-72 bg-white border-r border-gray-200 flex flex-col sticky top-0 h-screen">
         <div className="p-6 border-b border-gray-100">
-          <Logo size="md" variant="dark" />
+          <Logo size="md" variant="dark" onClick={() => onNavigate('landing')} />
         </div>
 
         <nav className="flex-1 p-4 space-y-2">

@@ -7,7 +7,7 @@ import { Switch } from '../../components/ui/switch';
 import Logo from '../../components/roi-nexus/Logo';
 
 interface SettingsProps {
-  onNavigate: (page: 'dashboard' | 'upload' | 'archive') => void;
+  onNavigate: (page: 'landing' | 'dashboard' | 'upload' | 'archive') => void;
   onLogout: () => void;
 }
 
@@ -18,7 +18,7 @@ export default function Settings({ onNavigate, onLogout }: SettingsProps) {
       <div className="fixed inset-y-0 left-0 w-72 bg-white border-r border-gray-200 shadow-xl">
         <div className="flex flex-col h-full">
           <div className="p-6 border-b border-gray-200">
-            <Logo size="md" variant="dark" />
+            <Logo size="md" variant="dark" onClick={() => onNavigate('landing')} />
           </div>
 
           {/* User Profile */}

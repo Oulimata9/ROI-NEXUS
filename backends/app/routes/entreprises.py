@@ -1,28 +1,54 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlmodel import Session, select
-from app.database import get_session
-from app.models.models import Entreprise
 from typing import List
+
+from fastapi import APIRouter, Depends
+from sqlmodel import Session, select
+
+from app.database import get_session
+from app.models.models import Entreprise, Utilisateur
+from app.schemas.entreprise_schema import NexusEntrepriseOut
+from app.security import require_admin_nexus
 
 router = APIRouter(prefix="/entreprises", tags=["Entreprises"])
 
-@router.post("/", response_model=Entreprise, status_code=status.HTTP_201_CREATED)
-def create_entreprise(entreprise: Entreprise, session: Session = Depends(get_session)):
-    """
-    Crée une nouvelle entreprise dans le système. 
-    Indispensable avant de pouvoir créer un utilisateur rattaché.
-    """
-    # Vérifier si l'entreprise existe déjà par son nom (optionnel)
-    existing = session.exec(select(Entreprise).where(Entreprise.nom == entreprise.nom)).first()
-    if existing:
-        raise HTTPException(status_code=400, detail="Cette entreprise est déjà enregistrée.")
-    
-    session.add(entreprise)
-    session.commit()
-    session.refresh(entreprise)
-    return entreprise
 
-@router.get("/", response_model=List[Entreprise])
-def list_entreprises(session: Session = Depends(get_session)):
-    """Liste toutes les entreprises enregistrées."""
-    return session.exec(select(Entreprise)).all()
+def build_company_overview(entreprise: Entreprise, admin_user: Utilisateur) -> NexusEntrepriseOut:
+    return NexusEntrepriseOut(
+        id_entreprise=entreprise.id_entreprise,
+        nom_entreprise=entreprise.nom,
+        email_contact=entreprise.email_contact,
+        statut=entreprise.statut,
+        date_creation=entreprise.date_creation,
+        admin_id=admin_user.id_utilisateur,
+        admin_nom=admin_user.nom,
+        admin_email=admin_user.email,
+        admin_role=admin_user.role,
+    )
+
+
+@router.get("/admin", response_model=List[NexusEntrepriseOut])
+def list_entreprises_for_nexus_admin(
+    session: Session = Depends(get_session),
+    current_user: Utilisateur = Depends(require_admin_nexus),
+):
+    _ = current_user
+    entreprises = session.exec(select(Entreprise).order_by(Entreprise.date_creation.desc())).all()
+    companies: list[NexusEntrepriseOut] = []
+
+    for entreprise in entreprises:
+        users = session.exec(
+            select(Utilisateur).where(Utilisateur.id_entreprise == entreprise.id_entreprise)
+        ).all()
+
+        if not users:
+            continue
+
+        admin_user = next((user for user in users if user.role == "administrateur"), None)
+        if admin_user is None:
+            admin_user = users[0]
+
+        if admin_user.role == "admin_nexus":
+            continue
+
+        companies.append(build_company_overview(entreprise, admin_user))
+
+    return companies

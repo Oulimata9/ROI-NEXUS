@@ -20,3 +20,20 @@ class UtilisateurOut(UtilisateurBase):
 
     class Config:
         from_attributes = True
+
+
+class EntrepriseRegistration(BaseModel):
+    nom_entreprise: str
+    email_contact: EmailStr
+    nom_admin: str
+    email_admin: EmailStr
+    mot_de_passe: str
+
+
+class AuthResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user_name: str
+    id_user: int
+    id_entreprise: int
+    role: str

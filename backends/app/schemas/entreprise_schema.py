@@ -1,18 +1,23 @@
-from pydantic import BaseModel, EmailStr
 from datetime import datetime
-from typing import Optional
 
-class EntrepriseBase(BaseModel):
-    nom: str
+from pydantic import BaseModel, EmailStr
+
+
+class NexusEntrepriseRegistration(BaseModel):
+    nom_entreprise: str
     email_contact: EmailStr
+    nom_admin: str
+    email_admin: EmailStr
+    mot_de_passe: str
 
-class EntrepriseCreate(EntrepriseBase):
-    pass # On utilise les champs de base pour la création
 
-class EntrepriseOut(EntrepriseBase):
+class NexusEntrepriseOut(BaseModel):
     id_entreprise: int
-    date_creation: datetime
+    nom_entreprise: str
+    email_contact: EmailStr
     statut: str
-
-    class Config:
-        from_attributes = True
+    date_creation: datetime
+    admin_id: int
+    admin_nom: str
+    admin_email: EmailStr
+    admin_role: str

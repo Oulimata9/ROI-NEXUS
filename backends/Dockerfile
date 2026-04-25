@@ -18,6 +18,8 @@ RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
 # Copie de tout le code source de l'application
 COPY ./app /code/app
+COPY ./alembic.ini /code/alembic.ini
+COPY ./alembic /code/alembic
 
 # Commande pour lancer le serveur FastAPI avec rechargement automatique
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

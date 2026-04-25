@@ -23,6 +23,8 @@ services:
       - db
     volumes:
       - ./backends/app:/code/app
+      - ./backends/alembic:/code/alembic
+      - ./backends/alembic.ini:/code/alembic.ini:ro
       - ./backends/requirements.txt:/code/requirements.txt:ro
     ports:
       - "8000:8000"
