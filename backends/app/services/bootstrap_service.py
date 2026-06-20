@@ -29,8 +29,8 @@ def sync_postgres_sequences() -> None:
                     f"""
                     SELECT setval(
                         pg_get_serial_sequence('{table_name}', '{column_name}'),
-                        COALESCE(MAX({column_name}), 1),
-                        MAX({column_name}) IS NOT NULL
+                        GREATEST(COALESCE(MAX({column_name}), 1), 1),
+                        MAX({column_name}) IS NOT NULL AND MAX({column_name}) >= 1
                     )
                     FROM {table_name}
                     """

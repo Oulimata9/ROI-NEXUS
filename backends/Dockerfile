@@ -22,4 +22,4 @@ COPY ./alembic.ini /code/alembic.ini
 COPY ./alembic /code/alembic
 
 # Commande pour lancer le serveur FastAPI avec rechargement automatique
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"]

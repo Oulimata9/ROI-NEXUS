@@ -75,7 +75,11 @@ function ProtectedRoute({
   }
 
   if (allowedRoles && currentRole && !allowedRoles.includes(currentRole)) {
-    return <Navigate to={getDefaultPrivatePath(currentRole)} replace />;
+    const fallback = getDefaultPrivatePath(currentRole);
+    // Évite une boucle infinie si le fallback pointe vers cette même route
+    if (window.location.pathname !== fallback) {
+      return <Navigate to={fallback} replace />;
+    }
   }
 
   return <>{children}</>;
@@ -183,10 +187,11 @@ export default function App() {
           setCurrentRole(response.data?.role || localStorage.getItem('user_role') || '');
         }
       } catch (err: any) {
-        if (isMounted && err.response?.status === 401) {
+        if (isMounted) {
           setCurrentDocument(null);
           setIsAuthenticated(false);
           setCurrentRole('');
+          clearAuthSession();
         }
       } finally {
         if (isMounted) {

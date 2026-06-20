@@ -9,9 +9,13 @@ services:
       POSTGRES_DB: roi_nexus
     volumes:
       - db_data:/var/lib/postgresql/data
-    # Change host port if default 5432 is already in use
     ports:
-      - "5433:5432"  # expose container port 5432 on host port 5433
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d roi_nexus"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   backend:
     build:
@@ -20,7 +24,8 @@ services:
     env_file:
       - .env.backend
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     volumes:
       - ./backends/app:/code/app
       - ./backends/alembic:/code/alembic
