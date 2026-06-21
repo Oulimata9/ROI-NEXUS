@@ -8,6 +8,7 @@ import DocumentDetail from './pages/roi-nexus/DocumentDetail';
 import DocumentsManagement from './pages/roi-nexus/DocumentsManagement';
 import LandingPage from './pages/roi-nexus/LandingPage';
 import LoginPage from './pages/roi-nexus/LoginPage';
+import MessagesPage from './pages/roi-nexus/MessagesPage';
 import NexusAdminPage from './pages/roi-nexus/NexusAdminPage';
 import SendingConfirmation from './pages/roi-nexus/SendingConfirmation';
 import Settings from './pages/roi-nexus/Settings';
@@ -26,6 +27,7 @@ type Page =
   | 'login'
   | 'dashboard'
   | 'nexus-admin'
+  | 'nexus-messages'
   | 'upload'
   | 'add-signers'
   | 'sending-confirmation'
@@ -256,6 +258,9 @@ export default function App() {
       case 'nexus-admin':
         navigate('/admin/companies');
         break;
+      case 'nexus-messages':
+        navigate('/admin/messages');
+        break;
       case 'upload':
         navigate('/documents/new');
         break;
@@ -345,6 +350,19 @@ export default function App() {
               allowedRoles={['admin_nexus']}
             >
               <NexusAdminPage onNavigate={navigateTo} onLogout={handleLogout} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/messages"
+          element={
+            <ProtectedRoute
+              isAuthenticated={isAuthenticated}
+              isAuthChecking={isAuthChecking}
+              currentRole={currentRole}
+              allowedRoles={['admin_nexus']}
+            >
+              <MessagesPage onNavigate={navigateTo} onLogout={handleLogout} />
             </ProtectedRoute>
           }
         />

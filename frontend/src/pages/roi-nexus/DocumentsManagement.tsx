@@ -7,6 +7,7 @@ import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Input } from '../../components/ui/input';
+import FloatingChat from '../../components/roi-nexus/FloatingChat';
 import Logo from '../../components/roi-nexus/Logo';
 import api from '../../api/axios';
 
@@ -568,6 +569,7 @@ export default function DocumentsManagement({ onNavigate, onLogout }: DocumentsM
           </Card>
         </div>
       )}
+      <FloatingChat />
     </div>
   );
 }

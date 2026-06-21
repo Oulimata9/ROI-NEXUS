@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings, validate_runtime_configuration
 from app.database import create_db_and_tables
-from app.routes import auth, documents, entreprises, signatures
+from app.routes import auth, documents, entreprises, messages, signatures
 from app.services.bootstrap_service import ensure_nexus_admin_account, sync_postgres_sequences
 
 app = FastAPI(
@@ -43,3 +43,4 @@ app.include_router(auth.router)
 app.include_router(documents.router)
 app.include_router(signatures.router)
 app.include_router(entreprises.router)
+app.include_router(messages.router)

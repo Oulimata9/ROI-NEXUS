@@ -46,6 +46,18 @@ class Document(SQLModel, table=True):
     signatures: List["Signature"] = Relationship(back_populates="document")
 
 
+class Message(SQLModel, table=True):
+    id_message: Optional[int] = Field(default=None, primary_key=True)
+    contenu: str
+    date_envoi: datetime = Field(default_factory=datetime.utcnow)
+    lu: bool = Field(default=False)
+    date_lecture: Optional[datetime] = None
+    expediteur_role: str
+
+    id_expediteur: int = Field(foreign_key="utilisateur.id_utilisateur")
+    id_entreprise: int = Field(foreign_key="entreprise.id_entreprise")
+
+
 class Signature(SQLModel, table=True):
     id_signature: Optional[int] = Field(default=None, primary_key=True)
     date_signature: Optional[datetime] = None

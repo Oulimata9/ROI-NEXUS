@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../..
 import { Badge } from '../../components/ui/badge';
 import { Input } from '../../components/ui/input';
 import { Progress } from '../../components/ui/progress';
+import FloatingChat from '../../components/roi-nexus/FloatingChat';
 import Logo from '../../components/roi-nexus/Logo';
 import api from '../../api/axios';
 import {
@@ -252,6 +253,7 @@ export default function Dashboard({ onNavigate, onLogout }: DashboardProps) {
           </Card>
         </div>
       </main>
+      <FloatingChat />
     </div>
   );
 }

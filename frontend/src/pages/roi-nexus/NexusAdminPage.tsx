@@ -5,6 +5,7 @@ import {
   CheckCircle2,
   LogOut,
   Mail,
+  MessageSquare,
   Shield,
   User,
   Users,
@@ -31,7 +32,7 @@ interface RegisteredCompany {
 }
 
 interface NexusAdminPageProps {
-  onNavigate: (page: 'landing') => void;
+  onNavigate: (page: 'landing' | 'nexus-messages') => void;
   onLogout: () => void;
 }
 
@@ -172,6 +173,14 @@ export default function NexusAdminPage({ onNavigate, onLogout }: NexusAdminPageP
               <p className="mt-2 text-base font-bold text-slate-950">{userName}</p>
               <p className="text-sm text-slate-500">Role: Admin Nexus</p>
             </div>
+            <Button
+              onClick={() => onNavigate('nexus-messages')}
+              variant="outline"
+              className="mb-2 w-full justify-start border-slate-200 text-slate-700"
+            >
+              <MessageSquare className="mr-2 h-5 w-5 text-blue-600" />
+              Messages entreprises
+            </Button>
             <Button onClick={onLogout} variant="outline" className="w-full justify-start border-slate-300 text-red-600">
               <LogOut className="mr-2 h-5 w-5" />
               Deconnexion
