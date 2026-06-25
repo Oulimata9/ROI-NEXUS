@@ -14,6 +14,15 @@ class PDFService:
         return len(reader.pages)
 
     @staticmethod
+    def get_page_dimensions(file_path: str, page_index: int) -> tuple:
+        """Retourne (largeur, hauteur) en points PDF pour la page donnee (0-indexe)."""
+        reader = PdfReader(file_path)
+        if page_index < 0 or page_index >= len(reader.pages):
+            raise ValueError(f"Index de page invalide : {page_index}")
+        page = reader.pages[page_index]
+        return float(page.mediabox.width), float(page.mediabox.height)
+
+    @staticmethod
     def _decode_signature_image(signature_image: str) -> bytes:
         if not signature_image:
             raise ValueError("Image de signature manquante")

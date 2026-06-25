@@ -3,9 +3,10 @@ import { AlertCircle, CheckCircle2, Clock, FileText, Loader2, Mail, Shield } fro
 
 import api from '../../api/axios';
 import Logo from '../../components/roi-nexus/Logo';
+import PdfZonePlacer from '../../components/roi-nexus/PdfZonePlacer';
 import SignatureModal from '../../components/roi-nexus/SignatureModal';
 import { Button } from '../../components/ui/button';
-import { Card, CardContent } from '../../components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import type { PublicSignatureStatus } from '../../types/signature';
@@ -229,6 +230,7 @@ export default function SignaturePage({ document, token, onNavigate }: Signature
             </CardContent>
           </Card>
         ) : (
+          <>
           <div className="grid lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-6">
               <Card className="border-3 border-gray-200 shadow-2xl">
@@ -428,6 +430,26 @@ export default function SignaturePage({ document, token, onNavigate }: Signature
               </Card>
             </div>
           </div>
+
+          {/* Aperçu du document avec la zone de signature assignée */}
+          {publicStatus?.can_sign !== false && (
+            <Card className="mt-8 border-2 border-gray-200 shadow-xl">
+              <CardHeader className="border-b border-gray-100">
+                <CardTitle className="flex items-center text-lg">
+                  <FileText className="mr-2 h-5 w-5 text-blue-600" />
+                  Votre zone de signature dans le document
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <PdfZonePlacer
+                  signerToken={token}
+                  readonly={true}
+                  highlightEmail={signerEmail}
+                />
+              </CardContent>
+            </Card>
+          )}
+          </>
         )}
       </div>
 

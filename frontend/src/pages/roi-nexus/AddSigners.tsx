@@ -3,6 +3,7 @@ import { ArrowRight, CheckCircle2, FileText, Loader2, Mail, UserPlus, Users, X }
 
 import api from '../../api/axios';
 import Logo from '../../components/roi-nexus/Logo';
+import PdfZonePlacer from '../../components/roi-nexus/PdfZonePlacer';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
@@ -146,6 +147,13 @@ export default function AddSigners({ document, onNavigate, onSendDocument }: Add
         });
       }
 
+      // Verrouille les zones après l'envoi des invitations
+      try {
+        await api.patch(`/documents/${document.id}/zones/lock`);
+      } catch {
+        // Non bloquant si aucune zone n'est définie
+      }
+
       onSendDocument(actualSigners.map((signer) => signer.email));
       onNavigate('sending-confirmation');
     } catch (err: any) {
@@ -205,7 +213,7 @@ export default function AddSigners({ document, onNavigate, onSendDocument }: Add
       </div>
 
       <div className="ml-72 p-8">
-        <div className="mx-auto max-w-4xl">
+        <div className="mx-auto max-w-6xl">
           <div className="mb-8">
             <h1 className="mb-2 text-3xl font-bold text-gray-900">Ajouter les signataires</h1>
             <p className="text-gray-600">Invitez les personnes qui doivent signer le document</p>
@@ -273,7 +281,7 @@ export default function AddSigners({ document, onNavigate, onSendDocument }: Add
                       </Label>
                       <Select
                         value={currentRole}
-                        onValueChange={(value) => setCurrentRole(value as 'signer' | 'approver' | 'cc')}
+                        onValueChange={(value: string) => setCurrentRole(value as 'signer' | 'approver' | 'cc')}
                       >
                         <SelectTrigger className="h-12 border-2 border-gray-200 focus:border-blue-500">
                           <SelectValue placeholder="Selectionnez un role" />
@@ -372,13 +380,16 @@ export default function AddSigners({ document, onNavigate, onSendDocument }: Add
                     <button
                       type="button"
                       onClick={() => setSignatureType('draw')}
-                      className={`rounded-2xl border-2 p-5 text-left transition-all ${
+                      className={`relative rounded-2xl border-2 p-5 text-left transition-all ${
                         signatureType === 'draw'
                           ? 'border-blue-500 bg-blue-50 shadow-lg shadow-blue-100'
                           : 'border-gray-200 bg-white hover:border-blue-200'
                       }`}
                     >
-                      <div className="mb-3 flex items-center justify-between">
+                      {signatureType === 'draw' && (
+                        <CheckCircle2 className="absolute right-3 top-3 h-5 w-5 text-blue-600" />
+                      )}
+                      <div className="mb-3 flex items-center justify-between pr-6">
                         <span className="text-base font-bold text-gray-900">Signature par dessin</span>
                         <Badge className="border-0 bg-blue-100 text-blue-700">Canvas</Badge>
                       </div>
@@ -390,15 +401,18 @@ export default function AddSigners({ document, onNavigate, onSendDocument }: Add
                     <button
                       type="button"
                       onClick={() => setSignatureType('numerique_otp')}
-                      className={`rounded-2xl border-2 p-5 text-left transition-all ${
+                      className={`relative rounded-2xl border-2 p-5 text-left transition-all ${
                         signatureType === 'numerique_otp'
-                          ? 'border-emerald-500 bg-emerald-50 shadow-lg shadow-emerald-100'
-                          : 'border-gray-200 bg-white hover:border-emerald-200'
+                          ? 'border-blue-500 bg-blue-50 shadow-lg shadow-blue-100'
+                          : 'border-gray-200 bg-white hover:border-blue-200'
                       }`}
                     >
-                      <div className="mb-3 flex items-center justify-between">
+                      {signatureType === 'numerique_otp' && (
+                        <CheckCircle2 className="absolute right-3 top-3 h-5 w-5 text-blue-600" />
+                      )}
+                      <div className="mb-3 flex items-center justify-between pr-6">
                         <span className="text-base font-bold text-gray-900">Signature numerique avec OTP</span>
-                        <Badge className="border-0 bg-emerald-100 text-emerald-700">OTP email</Badge>
+                        <Badge className="border-0 bg-blue-100 text-blue-700">OTP email</Badge>
                       </div>
                       <p className="text-sm text-gray-600">
                         Le signataire saisit son nom, demande un code OTP puis valide avec ce code.
@@ -473,6 +487,28 @@ export default function AddSigners({ document, onNavigate, onSendDocument }: Add
               </Card>
             </div>
           </div>
+
+          {/* Zone de placement des signatures — visible dès qu'un signataire est ajouté */}
+          {document?.id && signers.filter((s) => s.role !== 'cc').length > 0 && (
+            <Card className="mt-6 border-2 border-blue-100 shadow-lg">
+              <CardHeader className="border-b border-blue-50 bg-gradient-to-r from-blue-50 to-cyan-50">
+                <CardTitle className="flex items-center text-lg">
+                  <CheckCircle2 className="mr-2 h-5 w-5 text-blue-600" />
+                  Positionner les zones de signature
+                </CardTitle>
+                <CardDescription>
+                  Cliquez sur <strong>＋</strong> à côté d'un signataire, puis cliquez sur le
+                  document pour placer sa zone. Glissez pour déplacer.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-6">
+                <PdfZonePlacer
+                  documentId={Number(document.id)}
+                  signers={signers.filter((s) => s.role !== 'cc').map((s) => s.email)}
+                />
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>

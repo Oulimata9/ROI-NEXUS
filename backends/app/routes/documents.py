@@ -1,5 +1,4 @@
 import os
-from datetime import datetime
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
@@ -242,6 +241,38 @@ def admin_sign_document(
         "message": "Document signe par l'administrateur",
         "id_document": id_document,
     }
+
+
+@router.get("/{id_document}/preview")
+def preview_document(
+    id_document: int,
+    session: Session = Depends(get_session),
+    current_user: Utilisateur = Depends(get_current_user),
+):
+    """
+    Sert le PDF d'un document pour previsualisation (sans restriction de statut).
+    L'en-tete X-Page-Count contient le nombre de pages.
+    """
+    db_document = get_owned_document(id_document, session, current_user)
+
+    if not os.path.exists(db_document.chemin_fichier):
+        raise HTTPException(status_code=404, detail="Fichier non trouve")
+
+    try:
+        from app.services.pdf_service import PDFService
+        page_count = PDFService.get_page_count(db_document.chemin_fichier)
+    except Exception:
+        page_count = 1
+
+    return FileResponse(
+        db_document.chemin_fichier,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": "inline",
+            "X-Page-Count": str(page_count),
+            "Access-Control-Expose-Headers": "X-Page-Count",
+        },
+    )
 
 
 @router.get("/{id_document}/download")

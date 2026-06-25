@@ -98,6 +98,36 @@ def get_public_signature_status(
     return build_public_signature_status(token, session)
 
 
+@router.get("/pdf/{token}")
+def get_public_pdf(
+    token: str,
+    session: Session = Depends(get_session),
+):
+    """Sert le PDF original pour previsualisation par le signataire (acces public via token)."""
+    signature = get_signature_by_token(token, session)
+    document = session.get(Document, signature.id_document)
+    if not document:
+        raise HTTPException(status_code=404, detail="Document non trouve")
+    if not os.path.exists(document.chemin_fichier):
+        raise HTTPException(status_code=404, detail="Fichier non trouve sur le serveur")
+
+    try:
+        from app.services.pdf_service import PDFService
+        page_count = PDFService.get_page_count(document.chemin_fichier)
+    except Exception:
+        page_count = 1
+
+    return FileResponse(
+        document.chemin_fichier,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": "inline",
+            "X-Page-Count": str(page_count),
+            "Access-Control-Expose-Headers": "X-Page-Count",
+        },
+    )
+
+
 @router.post("/invite/{id_document}")
 def invite_signataire(
     id_document: int,
@@ -229,12 +259,37 @@ def sign_document(
     input_path = document.chemin_fichier
     output_path = build_signed_file_path(input_path)
 
+    # Utilise la zone definie par le createur si disponible
+    from app.models.models import ZoneSignature
+    zone = session.exec(
+        select(ZoneSignature).where(
+            ZoneSignature.id_document == sig_entry.id_document,
+            ZoneSignature.email_signataire == sig_entry.email_signataire,
+        )
+    ).first()
+
+    if zone:
+        page_index = zone.page - 1  # ZoneSignature stocke en 1-indexe
+        try:
+            page_w, page_h = PDFService.get_page_dimensions(input_path, page_index)
+        except ValueError:
+            page_index = 0
+            page_w, page_h = PDFService.get_page_dimensions(input_path, 0)
+        # Conversion % CSS (origine haut-gauche) → points PDF (origine bas-gauche)
+        sig_x = (zone.x / 100.0) * page_w
+        sig_y = ((100.0 - zone.y - zone.hauteur) / 100.0) * page_h
+        sig_page = page_index
+    else:
+        sig_x = payload.x
+        sig_y = payload.y
+        sig_page = payload.page
+
     signature_data = {
         "nom_signataire": payload.nom_visuel,
         "date": datetime.now().strftime("%d/%m/%Y %H:%M"),
-        "x": payload.x,
-        "y": payload.y,
-        "page": payload.page,
+        "x": sig_x,
+        "y": sig_y,
+        "page": sig_page,
         "signature_image": payload.signature_image,
     }
 

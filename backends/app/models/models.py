@@ -58,6 +58,20 @@ class Message(SQLModel, table=True):
     id_entreprise: int = Field(foreign_key="entreprise.id_entreprise")
 
 
+class ZoneSignature(SQLModel, table=True):
+    __tablename__ = "zone_signature"
+
+    id_zone: Optional[int] = Field(default=None, primary_key=True)
+    id_document: int = Field(foreign_key="document.id_document", index=True)
+    email_signataire: str
+    page: int = Field(default=1)
+    x: float = Field(default=10.0)
+    y: float = Field(default=10.0)
+    largeur: float = Field(default=22.0)
+    hauteur: float = Field(default=8.0)
+    verrouille: bool = Field(default=False)
+
+
 class Signature(SQLModel, table=True):
     id_signature: Optional[int] = Field(default=None, primary_key=True)
     date_signature: Optional[datetime] = None

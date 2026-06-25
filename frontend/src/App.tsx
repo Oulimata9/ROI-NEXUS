@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Navigate, Route, Routes, useNavigate, useParams } from 'react-router-dom';
 
 import api from './api/axios';
@@ -18,8 +18,10 @@ import SignedDocument from './pages/roi-nexus/SignedDocument';
 import SignUpPage from './pages/roi-nexus/SignUpPage';
 import AddSigners from './pages/roi-nexus/AddSigners';
 import UploadDocument from './pages/roi-nexus/UploadDocument';
-import { AUTH_INVALIDATED_EVENT, clearAuthSession } from './utils/auth';
+import { AUTH_INVALIDATED_EVENT, clearAuthSession, setAuthNotice } from './utils/auth';
 import { downloadBlob, getFilenameFromDisposition } from './utils/download';
+
+const INACTIVITY_TIMEOUT_MS = 30 * 60 * 1000;
 
 type Page =
   | 'landing'
@@ -166,6 +168,45 @@ export default function App() {
   const [isAuthChecking, setIsAuthChecking] = useState(() => Boolean(localStorage.getItem('token')));
   const [currentRole, setCurrentRole] = useState(() => localStorage.getItem('user_role') || '');
   const [currentDocument, setCurrentDocument] = useState<WorkflowDocument | null>(null);
+  const inactivityTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Déconnexion automatique après 30 minutes d'inactivité
+  useEffect(() => {
+    if (!isAuthenticated) {
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+        inactivityTimerRef.current = null;
+      }
+      return;
+    }
+
+    const resetTimer = () => {
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+      }
+      inactivityTimerRef.current = setTimeout(() => {
+        setAuthNotice("Votre session a expiré après 30 minutes d'inactivité. Veuillez vous reconnecter.");
+        clearAuthSession();
+        setCurrentDocument(null);
+        setIsAuthenticated(false);
+        setCurrentRole('');
+        setIsAuthChecking(false);
+        navigate('/login');
+      }, INACTIVITY_TIMEOUT_MS);
+    };
+
+    const events = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'] as const;
+    events.forEach((e) => window.addEventListener(e, resetTimer, { passive: true }));
+    resetTimer();
+
+    return () => {
+      events.forEach((e) => window.removeEventListener(e, resetTimer));
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+        inactivityTimerRef.current = null;
+      }
+    };
+  }, [isAuthenticated, navigate]);
 
   useEffect(() => {
     let isMounted = true;
